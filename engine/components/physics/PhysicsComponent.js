@@ -1,6 +1,8 @@
-/**
- * The engine's box2d component class.
- */
+/*
+sloont rewrite of the engine's box2d component class
+
+currently, the aim is to refactor and remove references to crash
+*/
 
 var PhysicsComponent = IgeEventingClass.extend({
 	classId: 'PhysicsComponent',
@@ -13,8 +15,13 @@ var PhysicsComponent = IgeEventingClass.extend({
 			console.log('Cannot add box2d component to the ige instance once the engine has started!', 'error');
 		}
 
+		// provided parameters
 		this._entity = entity;
 		this._options = options;
+
+		// setting properties on creation
+		// *
+		// may want to see if these need to be pruned
 		this._mode = 0;
 		this._actionQueue = [];
 		this._scaleRatio = 30;
@@ -24,6 +31,10 @@ var PhysicsComponent = IgeEventingClass.extend({
 		this.lastSecondAt = Date.now();
 		this.totalDisplacement = 0;
 		this.totalTimeElapsed = 0;
+
+		/*
+		Find out where these are being used
+		*/
 		this.exponent = 2;
 		this.divisor = 80;
 
@@ -38,11 +49,16 @@ var PhysicsComponent = IgeEventingClass.extend({
 				this.engine = ige.game.data.defaultData.clientPhysicsEngine;
 			}
 		}
+		/*
+		I don't know if this is going to be necessary
+		*/
 		this.engine = this.engine.toUpperCase();
 
-		// this.engine = 'crash';
+		// TESTING
 		console.log('Physics engine: ', this.engine);
 
+		// Here we are creating an instance of the engine component
+		// and passing this PhysicsComponent as a param
 		if (this.engine) {
 			dists[this.engine].init(this);
 		} else {
@@ -65,9 +81,12 @@ var PhysicsComponent = IgeEventingClass.extend({
 
 			return this._useWorker;
 		} else {
-			PhysicsComponent.prototype.log('Web workers were not detected on this browser. Cannot access useWorker() method.', 'warning');
+			PhysicsComponent.prototype.log('Web workers were not detected on this browser. Cannot access useWorker() method', 'warning');
 		}
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	/**
 	 * Gets / sets the world interval mode. In mode 0 (zero) the
@@ -87,6 +106,8 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._mode;
 	},
 
+	/*******************************************************
+	*******************************************************/
 	/**
 	 * Gets / sets if the world should allow sleep or not.
 	 * @param {Boolean=} val
@@ -101,12 +122,15 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._sleep;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Gets / sets the current engine to box2d scaling ratio.
 	 * @param val
 	 * @return {*}
 	 */
-	scaleRatio: function (val) {
+	 scaleRatio: function (val) {
 		if (val !== undefined) {
 			this._scaleRatio = val;
 			return this._entity;
@@ -115,13 +139,16 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._scaleRatio;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Gets / sets the current engine to box2d tilesize ratio, tilesize ratio is used while defining
 	 * anchors for joints (see revolute joint for planckjs engine).
 	 * @param val
 	 * @return {*}
 	 */
-	tilesizeRatio: function (val) {
+	 tilesizeRatio: function (val) {
 		if (val !== undefined) {
 			this._tilesizeRatio = val;
 			return this._entity;
@@ -130,13 +157,19 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._tilesizeRatio;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Gets the current Box2d world object.
 	 * @return {b2World}
 	 */
-	world: function () {
+	 world: function () {
 		return this._world;
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	createFixture: function (params) {
 		var tempDef = new this.b2FixtureDef();
@@ -153,6 +186,9 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return tempDef;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Creates a Box2d body and attaches it to an IGE entity
 	 * based on the supplied body definition.
@@ -165,6 +201,9 @@ var PhysicsComponent = IgeEventingClass.extend({
 
 		return dists[this.engine].createBody(this, entity, body, isLossTolerant);
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	destroyBody: function (entity, body) {
 		// immediately destroy body if entity already has box2dBody
@@ -207,11 +246,17 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	// move entityA to entityB's position and create joint
 	createJoint: function (entityA, entityB, anchorA, anchorB) {
 		// ige.devLog("joint created", entityA._category, entityA._translate.x, entityA._translate.y, entityB._category, entityB._translate.x, entityB._translate.y)
 		// dists[this.engine].createJoint(this, entityA, entityB, anchorA, anchorB);
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	destroyJoint: function (entityA, entityB) {
 		if (entityA && entityA.body && entityB && entityB.body) {
@@ -227,39 +272,40 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	// get entities within a region
 	getBodiesInRegion: function (region) {
 		var self = this;
 
-		if (ige.physics.engine == 'crash') {
-			var collider = new self.crash.Box(new self.crash.Vector(region.x + (region.width / 2), region.y + (region.height / 2)), region.width, region.height);
-			return ige.physics.crash.search(collider);
-		} else {
-			var aabb = new self.b2AABB();
+		var aabb = new self.b2AABB();
 
-			aabb.lowerBound.set(region.x / self._scaleRatio, region.y / self._scaleRatio);
-			aabb.upperBound.set((region.x + region.width) / self._scaleRatio, (region.y + region.height) / self._scaleRatio);
+		aabb.lowerBound.set(region.x / self._scaleRatio, region.y / self._scaleRatio);
+		aabb.upperBound.set((region.x + region.width) / self._scaleRatio, (region.y + region.height) / self._scaleRatio);
 
-			var entities = [];
-			// Query the world for overlapping shapes.
-			function getBodyCallback (fixture) {
-				if (fixture && fixture.m_body && fixture.m_body.m_fixtureList) {
-					entityId = fixture.m_body.m_fixtureList.igeId;
+		var entities = [];
+		// Query the world for overlapping shapes.
+		var getBodyCallback = function (fixture) {
+			if (fixture && fixture.m_body && fixture.m_body.m_fixtureList) {
+				entityId = fixture.m_body.m_fixtureList.igeId;
+				var entity = ige.$(entityId);
+				if (entity) {
+					// ige.devLog("found", entity._category, entity._translate.x, entity._translate.y)
 					var entity = ige.$(entityId);
-					if (entity) {
-						// ige.devLog("found", entity._category, entity._translate.x, entity._translate.y)
-						var entity = ige.$(entityId);
-						entities.push(ige.$(entityId));
-					}
+					entities.push(ige.$(entityId));
 				}
-				return true;
 			}
+			return true;
+		};
 
-			dists[this.engine].queryAABB(self, aabb, getBodyCallback);
+		dists[this.engine].queryAABB(self, aabb, getBodyCallback);
 
-			return entities;
-		}
+		return entities;
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	/**
 	 * Produces static box2d bodies from passed map data.
@@ -272,7 +318,7 @@ var PhysicsComponent = IgeEventingClass.extend({
 	 * any tile with any map data is considered part of the static
 	 * object data.
 	 */
-	staticsFromMap: function (mapLayer, callback) {
+	 staticsFromMap: function (mapLayer, callback) {
 		if (mapLayer == undefined) {
 			ige.server.unpublish('PhysicsComponent#51');
 		}
@@ -294,21 +340,12 @@ var PhysicsComponent = IgeEventingClass.extend({
 				posX = (tileWidth * (rect.width / 2));
 				posY = (tileHeight * (rect.height / 2));
 
-				if (this.engine == 'CRASH') {
-					var defaultData = {
-						translate: {
-							x: rect.x * tileWidth,
-							y: rect.y * tileHeight
-						}
-					};
-				} else {
-					var defaultData = {
-						translate: {
-							x: rect.x * tileWidth + posX,
-							y: rect.y * tileHeight + posY
-						}
-					};
-				}
+				var defaultData = {
+					translate: {
+						x: rect.x * tileWidth + posX,
+						y: rect.y * tileHeight + posY
+					}
+				};
 
 				var wall = new IgeEntityBox2d(defaultData)
 					.width(rect.width * tileWidth)
@@ -345,6 +382,9 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Creates a contact listener with the specified callbacks. When
 	 * contacts begin and end inside the box2d simulation the specified
@@ -354,9 +394,12 @@ var PhysicsComponent = IgeEventingClass.extend({
 	 * @param {Function} preSolve
 	 * @param {Function} postSolve
 	 */
-	contactListener: function (beginContactCallback, endContactCallback, preSolve, postSolve) {
+	 contactListener: function (beginContactCallback, endContactCallback, preSolve, postSolve) {
 		dists[this.engine].contactListener(this, beginContactCallback, endContactCallback, preSolve, postSolve);
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	/**
 	 * If enabled, sets the physics world into network debug mode which
@@ -366,7 +409,7 @@ var PhysicsComponent = IgeEventingClass.extend({
 	 * data is useful for debugging collisions.
 	 * @param {Boolean} val
 	 */
-	networkDebugMode: function (val) {
+	 networkDebugMode: function (val) {
 		if (val !== undefined) {
 			this._networkDebugMode = val;
 
@@ -396,13 +439,16 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._networkDebugMode;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	/**
 	 * Creates a debug entity that outputs the bounds of each box2d
 	 * body during standard engine ticks.
 	 * @param {IgeEntity} mountScene
 	 */
-	enableDebug: function (mountScene) {
-		if (this.engine == 'PLANCK' || this.engine == 'CRASH') return; // planck doesn't support debugdraw
+	 enableDebug: function (mountScene) {
+		if (this.engine == 'PLANCK') return; // planck doesn't support debugdraw
 
 		if (mountScene) {
 			// Define the debug drawing instance
@@ -436,14 +482,8 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
-	// *
-	//  * Instantly move a body to an absolute position subverting the physics simulation
-	//  * @param body
-
-	// moveBody: function(body, x, y)
-	// {
-	// 	body.SetTransform(b2Vec2(x,y),body.GetAngle())
-	// },
+	/*******************************************************
+	*******************************************************/
 
 	/**
 	 * Gets / sets the callback method that will be called after
@@ -460,8 +500,11 @@ var PhysicsComponent = IgeEventingClass.extend({
 		return this._updateCallback;
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	start: function () {
-		var self = this;
+		// var self = this;
 
 		if (!this._active) {
 			this._active = true;
@@ -480,6 +523,9 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	stop: function () {
 		if (this._active) {
 			this._active = false;
@@ -496,10 +542,16 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 	},
 
+	/*******************************************************
+	*******************************************************/
+
 	queueAction: function (action) {
 		// PhysicsComponent.prototype.log("queueAction: "+action.type);
 		this._actionQueue.push(action);
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	update: function (timeElapsedSinceLastStep) {
 		var self = this;
@@ -540,147 +592,143 @@ var PhysicsComponent = IgeEventingClass.extend({
 			let timeStart = ige.now;
 
 			// Loop the physics objects and move the entities they are assigned to
-			if (self.engine == 'crash') { // crash's engine step happens in dist.js
-				self._world.step(timeElapsedSinceLastStep);
-			} else {
-				self._world.step(timeElapsedSinceLastStep / 1000, 8, 3); // Call the world step; frame-rate, velocity iterations, position iterations
 
-				var tempBod = self._world.getBodyList();
+			self._world.step(timeElapsedSinceLastStep / 1000, 8, 3); // Call the world step; frame-rate, velocity iterations, position iterations
 
-				// iterate through every physics body
-				while (tempBod && typeof tempBod.getNext == 'function') {
-					// Check if the body is awake && not static
-					if (tempBod.m_type !== 'static' && tempBod.isAwake()) {
-						entity = tempBod._entity;
+			var tempBod = self._world.getBodyList();
 
-						if (entity) {
-							var mxfp = dists[ige.physics.engine].getmxfp(tempBod);
-							var x = mxfp.x * ige.physics._scaleRatio;
-							var y = mxfp.y * ige.physics._scaleRatio;
+			// iterate through every physics body
+			while (tempBod && typeof tempBod.getNext == 'function') {
+				// Check if the body is awake && not static
+				if (tempBod.m_type !== 'static' && tempBod.isAwake()) {
+					entity = tempBod._entity;
 
-							// make projectile auto-rotate toward its path. ideal for arrows or rockets that should point toward its direction
-							if (entity._category == 'projectile' &&
-								entity._stats.currentBody && !entity._stats.currentBody.fixedRotation &&
-								tempBod.m_linearVelocity.y != 0 && tempBod.m_linearVelocity.x != 0
-							) {
-								var angle = Math.atan2(tempBod.m_linearVelocity.y, tempBod.m_linearVelocity.x) + Math.PI / 2;
-							} else {
-								var angle = tempBod.getAngle();
-							}
+					if (entity) {
+						var mxfp = dists[ige.physics.engine].getmxfp(tempBod);
+						var x = mxfp.x * ige.physics._scaleRatio;
+						var y = mxfp.y * ige.physics._scaleRatio;
 
-							var tileWidth = ige.scaleMapDetails.tileWidth;
-							var tileHeight = ige.scaleMapDetails.tileHeight;
+						// make projectile auto-rotate toward its path. ideal for arrows or rockets that should point toward its direction
+						if (entity._category == 'projectile' &&
+							entity._stats.currentBody && !entity._stats.currentBody.fixedRotation &&
+							tempBod.m_linearVelocity.y != 0 && tempBod.m_linearVelocity.x != 0
+						) {
+							var angle = Math.atan2(tempBod.m_linearVelocity.y, tempBod.m_linearVelocity.x) + Math.PI / 2;
+						} else {
+							var angle = tempBod.getAngle();
+						}
 
-							var skipBoundaryCheck = entity._stats && entity._stats.confinedWithinMapBoundaries === false;
-							var padding = tileWidth / 2;
+						var tileWidth = ige.scaleMapDetails.tileWidth;
+						var tileHeight = ige.scaleMapDetails.tileHeight;
 
-							// keep entities within the boundaries
-							if (
-								(entity._category == 'unit' || entity._category == 'debris' || entity._category == 'item' || entity._category == 'projectile') &&
-								!skipBoundaryCheck &&
-								(
-									x < padding || x > (ige.map.data.width * tileWidth) - padding ||
-									y < padding || y > (ige.map.data.height * tileHeight) - padding
-								)
-							) {
-								// fire 'touchesWall' trigger when unit goes out of bounds for the first time
-								if (!entity.isOutOfBounds) {
-									if (entity._category == 'unit') {
-										// console.log("unitTouchesWall", entity.id());
-										ige.trigger.fire('unitTouchesWall', { unitId: entity.id() });
-									} else if (entity._category == 'item') {
-										ige.trigger.fire('itemTouchesWall', { itemId: entity.id() });
-									} else if (entity._category == 'projectile') {
-										ige.trigger.fire('projectileTouchesWall', { projectileId: entity.id() });
-									}
+						var skipBoundaryCheck = entity._stats && entity._stats.confinedWithinMapBoundaries === false;
+						var padding = tileWidth / 2;
 
-									entity.isOutOfBounds = true;
+						// keep entities within the boundaries
+						if (
+							(entity._category == 'unit' || entity._category == 'debris' || entity._category == 'item' || entity._category == 'projectile') &&
+							!skipBoundaryCheck &&
+							(
+								x < padding || x > (ige.map.data.width * tileWidth) - padding ||
+								y < padding || y > (ige.map.data.height * tileHeight) - padding
+							)
+						) {
+							// fire 'touchesWall' trigger when unit goes out of bounds for the first time
+							if (!entity.isOutOfBounds) {
+								if (entity._category == 'unit') {
+									// console.log("unitTouchesWall", entity.id());
+									ige.trigger.fire('unitTouchesWall', { unitId: entity.id() });
+								} else if (entity._category == 'item') {
+									ige.trigger.fire('itemTouchesWall', { itemId: entity.id() });
+								} else if (entity._category == 'projectile') {
+									ige.trigger.fire('projectileTouchesWall', { projectileId: entity.id() });
 								}
 
-								x = Math.max(Math.min(x, (ige.map.data.width * tileWidth) - padding), padding);
-								y = Math.max(Math.min(y, (ige.map.data.height * tileHeight) - padding), padding);
-							} else {
+								entity.isOutOfBounds = true;
+							}
+
+							x = Math.max(Math.min(x, (ige.map.data.width * tileWidth) - padding), padding);
+							y = Math.max(Math.min(y, (ige.map.data.height * tileHeight) - padding), padding);
+						} else {
+							if (entity.isOutOfBounds) {
+								entity.isOutOfBounds = false;
+							}
+						}
+
+						if (ige.isServer) {
+							/* server-side reconciliation */
+							// hard-correct client entity's position (teleport) if the distance between server & client is greater than 100px
+							// continuously for 10 frames in a row
+							if (ige.game.cspEnabled && entity.clientStreamedPosition) {
+								var targetX = entity.clientStreamedPosition[0];
+								var targetY = entity.clientStreamedPosition[1];
+								var xDiff = targetX - x;
+								var yDiff = targetY - y;
+								x += xDiff / 2;
+								y += yDiff / 2;
+							}
+
+							entity.translateTo(x, y, 0);
+							entity.rotateTo(0, 0, angle);
+						} else if (ige.isClient) {
+							let nextFrameTime = ige._currentTime + (1000 / ige._physicsTickRate);
+							if (ige.physics && ige.game.cspEnabled && ige.client.selectedUnit == entity) {
 								if (entity.isOutOfBounds) {
-									entity.isOutOfBounds = false;
-								}
-							}
-
-							if (ige.isServer) {
-								/* server-side reconciliation */
-								// hard-correct client entity's position (teleport) if the distance between server & client is greater than 100px
-								// continuously for 10 frames in a row
-								if (ige.game.cspEnabled && entity.clientStreamedPosition) {
-									var targetX = entity.clientStreamedPosition[0];
-									var targetY = entity.clientStreamedPosition[1];
-									var xDiff = targetX - x;
-									var yDiff = targetY - y;
-									x += xDiff/2
-									y += yDiff/2
-								}
-
-								entity.translateTo(x, y, 0);
-								entity.rotateTo(0, 0, angle);
-							} else if (ige.isClient) {
-								let nextFrameTime = ige._currentTime + (1000 / ige._physicsTickRate);
-								if (ige.physics && ige.game.cspEnabled && ige.client.selectedUnit == entity) {
-									if (entity.isOutOfBounds) {
-										entity.body.setPosition({ x: x / entity._b2dRef._scaleRatio, y: y / entity._b2dRef._scaleRatio });
-										entity.body.setAngle(angle);
-									}
-									
-									if (entity.nextPhysicsFrame == undefined || ige._currentTime > entity.nextPhysicsFrame[0]) {
-										entity.prevPhysicsFrame = entity.nextPhysicsFrame;
-										entity.nextPhysicsFrame = [nextFrameTime, [x, y, angle]];
-									}
-
-								} else if (entity._category == 'projectile' && entity._stats.sourceItemId != undefined) {
-									if (entity._streamMode == 0) {
-										entity.prevPhysicsFrame = entity.nextPhysicsFrame;
-										entity.nextPhysicsFrame = [nextFrameTime, [x, y, angle]];
-									}
-								} else {
-									// all streamed entities are rigidly positioned
-									x = entity._translate.x;
-									y = entity._translate.y;
-									angle = entity._rotate.z;
-									entity.nextPhysicsFrame = undefined;
 									entity.body.setPosition({ x: x / entity._b2dRef._scaleRatio, y: y / entity._b2dRef._scaleRatio });
 									entity.body.setAngle(angle);
 								}
-							}
 
-							if (tempBod.asleep) {
-								// The tempBod was asleep last frame, fire an awake event
-								tempBod.asleep = false;
-								ige.physics.emit('afterAwake', entity);
-							}
-						} else {
-							if (!tempBod.asleep) {
-								// The tempBod was awake last frame, fire an asleep event
-								tempBod.asleep = true;
-								ige.physics.emit('afterAsleep', entity);
+								if (entity.nextPhysicsFrame == undefined || ige._currentTime > entity.nextPhysicsFrame[0]) {
+									entity.prevPhysicsFrame = entity.nextPhysicsFrame;
+									entity.nextPhysicsFrame = [nextFrameTime, [x, y, angle]];
+								}
+							} else if (entity._category == 'projectile' && entity._stats.sourceItemId != undefined) {
+								if (entity._streamMode == 0) {
+									entity.prevPhysicsFrame = entity.nextPhysicsFrame;
+									entity.nextPhysicsFrame = [nextFrameTime, [x, y, angle]];
+								}
+							} else {
+								// all streamed entities are rigidly positioned
+								x = entity._translate.x;
+								y = entity._translate.y;
+								angle = entity._rotate.z;
+								entity.nextPhysicsFrame = undefined;
+								entity.body.setPosition({ x: x / entity._b2dRef._scaleRatio, y: y / entity._b2dRef._scaleRatio });
+								entity.body.setAngle(angle);
 							}
 						}
+
+						if (tempBod.asleep) {
+							// The tempBod was asleep last frame, fire an awake event
+							tempBod.asleep = false;
+							ige.physics.emit('afterAwake', entity);
+						}
+					} else {
+						if (!tempBod.asleep) {
+							// The tempBod was awake last frame, fire an asleep event
+							tempBod.asleep = true;
+							ige.physics.emit('afterAsleep', entity);
+						}
 					}
-
-					tempBod = tempBod.getNext();
 				}
 
-				ige._physicsFrames++;
+				tempBod = tempBod.getNext();
+			}
 
-				// Clear forces because we have ended our physics simulation frame
-				self._world.clearForces();
+			ige._physicsFrames++;
 
-				// get stats for dev panel
-				var timeEnd = Date.now();
-				self.physicsTickDuration += timeEnd - timeStart;
-				if (timeEnd - self.lastSecondAt > 1000) {
-					self.lastSecondAt = timeEnd;
-					self.avgPhysicsTickDuration = self.physicsTickDuration / ige._fpsRate;
-					self.totalDisplacement = 0;
-					self.totalTimeElapsed = 0;
-					self.physicsTickDuration = 0;
-				}
+			// Clear forces because we have ended our physics simulation frame
+			self._world.clearForces();
+
+			// get stats for dev panel
+			var timeEnd = Date.now();
+			self.physicsTickDuration += timeEnd - timeStart;
+			if (timeEnd - self.lastSecondAt > 1000) {
+				self.lastSecondAt = timeEnd;
+				self.avgPhysicsTickDuration = self.physicsTickDuration / ige._fpsRate;
+				self.totalDisplacement = 0;
+				self.totalTimeElapsed = 0;
+				self.physicsTickDuration = 0;
 			}
 
 			if (typeof (self._updateCallback) === 'function') {
@@ -688,6 +736,9 @@ var PhysicsComponent = IgeEventingClass.extend({
 			}
 		}
 	},
+
+	/*******************************************************
+	*******************************************************/
 
 	destroy: function () {
 		// Stop processing box2d steps
@@ -697,6 +748,11 @@ var PhysicsComponent = IgeEventingClass.extend({
 		}
 		// Destroy all box2d world bodies
 	}
+
+	/*******************************************************
+	*******************************************************/
 });
 
-if (typeof (module) !== 'undefined' && typeof (module.exports) !== 'undefined') { module.exports = PhysicsComponent; }
+if (typeof (module) !== 'undefined' && typeof (module.exports) !== 'undefined') {
+	module.exports = PhysicsComponent;
+}

@@ -1,3 +1,5 @@
+const PhysicsComponent = require('../PhysicsComponent');
+
 var dists = {
 	// current: 'box2dts',
 	// current: 'planck',
@@ -5,7 +7,7 @@ var dists = {
 	// current: 'box2D',
 	// current: 'native',
 	// current: 'matterjs',
-	defaultEngine: 'PLANCK',
+	defaultEngine: 'CRASH',
 
 	/**
      * NOTE:
@@ -315,77 +317,204 @@ var dists = {
 			}
 		}
 	},
+	// CRASH: {
+	// 	init: function (component) {
+	// 		// component.b2Color = planck.Common.b2Color;
+
+	// 		//
+	// 		var crash;
+	// 		if (ige.isServer) {
+	// 			crash = new global.Crash({});
+	// 		} else {
+	// 			crash = new Crash({});
+	// 		}
+
+	// 		component.b2Vec2 = crash.Vector;
+	// 		// added by Jaeyun for world collision detection for raycast bullets
+	// 		// component.b2Math = planck.Math;
+	// 		// component.b2Shape = planck.Shape;
+	// 		// component.b2Body = planck.Body;
+	// 		// component.b2Fixture = planck.Fixture;
+	// 		// component.b2World = planck.World;
+	// 		// component.b2PolygonShape = planck.Polygon;
+	// 		// component.b2CircleShape = planck.Circle;
+	// 		// component.b2DebugDraw = planck.DebugDraw; // DebugDraw doesn't exist in planckjs
+	// 		component.crash = crash;
+	// 		component.createWorld = function (id, options) {
+	// 			component._world = {
+	// 				isLocked: function () {
+	// 					return false;
+	// 				},
+
+	// 				step: function (timeElapsedSinceLastStep) {
+	// 					var allColliders = crash.all();
+
+	// 					var count = {
+	// 						unit: 0,
+	// 						debris: 0,
+	// 						item: 0,
+	// 						projectile: 0,
+	// 						wall: 0,
+	// 						region: 0
+	// 					};
+	// 					for (var i = 0; i < allColliders.length; i++) {
+	// 						var collider = allColliders[i];
+	// 						entity = collider._entity;
+	// 						var moveX = timeElapsedSinceLastStep / (1000 / ige._fpsRate) * collider.velocity.x;
+	// 						var moveY = timeElapsedSinceLastStep / (1000 / ige._fpsRate) * collider.velocity.y;
+	// 						if (ige.isServer) {
+	// 							entity.translateTo(collider.sat.pos.x + moveX, collider.sat.pos.y + moveY, 0);
+	// 							// entity.translateTo(collider.sat.pos.x + moveX + (entity.width()/2), collider.sat.pos.y + (entity.height()/2));
+	// 						}
+	// 						entity.rotateTo(0, 0, collider.sat.pos.angle);
+	// 						if (entity._category == 'unit') {
+	// 							// console.log("move",  allColliders.length, collider.sat.pos.x, collider.sat.pos.y)
+
+	// 						}
+	// 					}
+
+	// 					crash.checkAll();
+
+	// 					// console.log(allColliders.length, count);
+	// 					return true;
+	// 				},
+	// 				destroyBody: {
+	// 					apply: function (world, colliders) {
+	// 						for (var i = 0; i < colliders.length; i++) {
+	// 							crash.remove(colliders[i]);
+	// 						}
+	// 					}
+	// 				},
+	// 				clearForces: function () { }
+	// 			};
+	// 		};
+
+	// 		crash.Collider.prototype.setPosition = function (pos) {
+	// 			this.moveTo(pos.x, pos.y);
+	// 			// this.sat.pos = {
+	// 			//     x: pos.x * component._scaleRatio,
+	// 			//     y: pos.y * component._scaleRatio
+	// 			// }
+	// 		};
+	// 		crash.Collider.prototype.setAwake = function (param) { };
+	// 		crash.Collider.prototype.setAngle = function (angle) {
+	// 			this.sat.setAngle(angle);
+	// 		};
+	// 		crash.Collider.prototype.setLinearVelocity = function (point) {
+	// 			this.velocity = {
+	// 				x: point.x,
+	// 				y: point.y
+	// 			};
+	// 		};
+	// 		component.gravity = function (x, y) {
+	// 		};
+	// 	},
+
+	// 	createBody: function (self, entity, body, isLossTolerant) {
+	// 		if (body.fixtures && body.fixtures[0]) {
+	// 			// Grab the fixture definition
+	// 			var fixtureDef = body.fixtures[0];
+	// 			var type = body.type;
+	// 			if (entity._category == 'debris' && entity._stats.name == 'car')
+	// 				console.log(entity._translate, entity.width(), entity.height());
+	// 			var collider = new self.crash.Box(new self.crash.Vector(entity._translate.x, entity._translate.y), entity.width(), entity.height());
+	// 			if (typeof PIXI != 'undefined') {
+	// 				var graphics = new PIXI.Graphics();
+
+	// 				graphics.beginFill(0xFF0000);
+
+	// 				// set the line style to have a width of 5 and set the color to red
+	// 				graphics.lineStyle(10, 0xFF0000);
+
+	// 				// draw a rectangle
+	// 				graphics.drawRect(entity._translate.x, entity._translate.y, entity.width(), entity.height());
+	// 				graphics.zIndex = 10;
+	// 				graphics.alpha = 0.4;
+	// 				ige.pixi.world.addChild(graphics);
+	// 			}
+	// 			// collider.rotateTo(entity._rotate.z);
+	// 		}
+	// 		self.crash.insert(collider); // collider will now turn up in searches and collision checks
+
+	// 		collider.igeId = fixtureDef.igeId;
+
+	// 		// Store the entity that is linked to self body
+	// 		collider._entity = entity;
+	// 		collider.velocity = { x: 0, y: 0 };
+	// 		// console.log("create body", entity._category, collider.sat.pos)
+
+	// 		// Add the body to the world with the passed fixture
+	// 		entity.body = collider;
+
+	// 		// rotate body to its previous value
+	// 		entity.rotateTo(0, 0, entity._rotate.z);
+
+	// 		return collider;
+	// 	},
+
+	// 	createJoint: function (self, entityA, entityB, anchorA, anchorB) {
+	// 		// no joint support in crash
+	// 	},
+
+	// 	contactListener: function (self, beginContactCallback) {
+	// 		self.crash.onCollision(function (a, b, res, cancel) {
+	// 			var entityA = ige.$(a.igeId);
+	// 			var entityB = ige.$(b.igeId);
+
+	// 			var contact = {
+	// 				m_fixtureA: {
+	// 					m_body: {
+	// 						_entity: entityA
+	// 					}
+	// 				},
+	// 				m_fixtureB: {
+	// 					m_body: {
+	// 						_entity: entityB
+	// 					}
+	// 				}
+	// 			};
+
+	// 			if ((entityA._stats && entityA._stats.name == 'car')) {
+	// 				console.log('carA!');
+	// 			}
+
+	// 			if ((entityB._stats && entityB._stats.name == 'car')) {
+	// 				console.log('carB!');
+	// 			}
+
+	// 			if (entityA._category == undefined && entityB._category == undefined) { // ignore wall 2 wall collision
+	// 				return;
+	// 			}
+
+	// 			// console.log("collision!", entityA._category, entityB._category, res.overlapV)
+
+	// 			beginContactCallback(contact);
+
+	// 			var overlap = res.overlapV;
+	// 			if (entityA && entityA._stats && entityA._stats.currentBody && entityA._stats.currentBody.type != 'static') {
+	// 				a.moveBy(-overlap.x, -overlap.y);
+	// 				// entityA.translateTo(a.sat.pos.x - overlap.x, a.sat.pos.x - overlap.y);
+	// 			}
+
+	// 			if (entityB && entityB._stats && entityB._stats.currentBody && entityB._stats.currentBody.type != 'static') {
+	// 				b.moveBy(overlap.x, overlap.y);
+	// 				// entityB.translateTo(b.sat.pos.x + overlap.x, b.sat.pos.x + overlap.y);
+	// 			}
+	// 		});
+	// 	}
+	// },
+
 	CRASH: {
 		init: function (component) {
-			// component.b2Color = planck.Common.b2Color;
-
-			//
-			var crash;
-			if (ige.isServer) {
-				crash = new global.Crash({});
-			} else {
-				crash = new Crash({});
-			}
-
-			component.b2Vec2 = crash.Vector;
-			// added by Jaeyun for world collision detection for raycast bullets
-			// component.b2Math = planck.Math;
-			// component.b2Shape = planck.Shape;
-			// component.b2Body = planck.Body;
-			// component.b2Fixture = planck.Fixture;
-			// component.b2World = planck.World;
-			// component.b2PolygonShape = planck.Polygon;
-			// component.b2CircleShape = planck.Circle;
-			// component.b2DebugDraw = planck.DebugDraw; // DebugDraw doesn't exist in planckjs
+			// This may not be a necessary ternery
+			var crash = ige.isServer ? new global.Crash() : new Crash();
+			// var crash = new Crash();
+			// console.log(crash);
 			component.crash = crash;
-			component.createWorld = function (id, options) {
-				component._world = {
-					isLocked: function () {
-						return false;
-					},
-
-					step: function (timeElapsedSinceLastStep) {
-						var allColliders = crash.all();
-
-						var count = {
-							unit: 0,
-							debris: 0,
-							item: 0,
-							projectile: 0,
-							wall: 0,
-							region: 0
-						};
-						for (var i = 0; i < allColliders.length; i++) {
-							var collider = allColliders[i];
-							entity = collider._entity;
-							var moveX = timeElapsedSinceLastStep / (1000 / ige._fpsRate) * collider.velocity.x;
-							var moveY = timeElapsedSinceLastStep / (1000 / ige._fpsRate) * collider.velocity.y;
-							if (ige.isServer) {
-								entity.translateTo(collider.sat.pos.x + moveX, collider.sat.pos.y + moveY, 0);
-								// entity.translateTo(collider.sat.pos.x + moveX + (entity.width()/2), collider.sat.pos.y + (entity.height()/2));
-							}
-							entity.rotateTo(0, 0, collider.sat.pos.angle);
-							if (entity._category == 'unit') {
-								// console.log("move",  allColliders.length, collider.sat.pos.x, collider.sat.pos.y)
-
-							}
-						}
-
-						crash.checkAll();
-
-						// console.log(allColliders.length, count);
-						return true;
-					},
-					destroyBody: {
-						apply: function (world, colliders) {
-							for (var i = 0; i < colliders.length; i++) {
-								crash.remove(colliders[i]);
-							}
-						}
-					},
-					clearForces: function () { }
-				};
-			};
+			component.cx_RBush = crash.RBush;
+			component.cx_SAT = crash.SAT;
+			component.cx_Vector = crash.Vector;
+			component.cx_Response = crash.Response;
 
 			crash.Collider.prototype.setPosition = function (pos) {
 				this.moveTo(pos.x, pos.y);
@@ -394,7 +523,9 @@ var dists = {
 				//     y: pos.y * component._scaleRatio
 				// }
 			};
-			crash.Collider.prototype.setAwake = function (param) { };
+			crash.Collider.prototype.setAwake = function (param) {
+				// Needs something
+			};
 			crash.Collider.prototype.setAngle = function (angle) {
 				this.sat.setAngle(angle);
 			};
@@ -404,54 +535,106 @@ var dists = {
 					y: point.y
 				};
 			};
-			component.gravity = function (x, y) {
+
+			component.cx_Collider = crash.Collider;
+			component.cx_Point = crash.Point;
+			component.cx_Circle = crash.Circle;
+			component.cx_Box = crash.Box;
+			component.cx_Polygon = crash.Polygon;
+
+			component.createWorld = function (id, options) {
+				component._world = {};
+				// we want to start with a check all then just do checks
+				component.crash.checkAll();
+
+				component._world.isLocked = function () {
+					return false;
+				};
+
+				component._world.getBodyList = function () {
+					return component.crash.all();
+				};
+
+				component._world.step = function (timeElapsedSinceLastStep) {
+					var allColliders = component._world.getBodyList();
+
+					var count = {
+						unit: 0,
+						debris: 0,
+						item: 0,
+						projectile: 0,
+						wall: 0,
+						region: 0
+					};
+
+					for (var collider of allColliders) {
+						entity = collider._entity;
+						var inverseIgeFpsRateTimes1K = (1000 / ige._fpsRate);
+
+						var moveX = timeElapsedSinceLastStep / inverseIgeFpsRateTimes1K * collider.velocity.x;
+						var moveY = timeElapsedSinceLastStep / inverseIgeFpsRateTimes1K * collider.velocity.y;
+
+						if (ige.isServer) {
+							entity.translateTo(collider.sat.pos.x + moveX, collider.sat.pos.y + moveY);
+						}
+						entity.rotateTo(0, 0, collider.sat.pos.angle);
+					}
+
+					crash.check();
+
+					return true;
+				};
+
+				component._world.destroyBody = {
+					apply: function (world, colliders) {
+						for (collider of colliders) {
+							component.crash.remove(collider)
+						}
+					}
+				};
+
+				component._world.clearForces = function () {
+					// nothing yet
+				}
 			};
+
+			// gravity
+			// roughly copied from planck
+			component.gravity = function (x, y) {
+				if (x !== undefined && y !== undefined) {
+					this._gravity = new this.cx_Vector(x, y); // seems strange that this is this.cx_V... self?
+					return this._entity;
+				}
+
+				return this._gravity;
+			};
+
+			component._sleep = true;
+			component._gravity = new component.cx_Vector(0, 0); // and this is component.cx_v...
 		},
 
 		createBody: function (self, entity, body, isLossTolerant) {
-			if (body.fixtures && body.fixtures[0]) {
-				// Grab the fixture definition
-				var fixtureDef = body.fixtures[0];
-				var type = body.type;
-				if (entity._category == 'debris' && entity._stats.name == 'car')
-					console.log(entity._translate, entity.width(), entity.height());
-				var collider = new self.crash.Box(new self.crash.Vector(entity._translate.x, entity._translate.y), entity.width(), entity.height());
-				if (typeof PIXI != 'undefined') {
-					var graphics = new PIXI.Graphics();
+			var type = body.type;
+			var collider = new self.cx_Box(
+				new self.cx_Vector(entity._translate.x, entity._translate.y),
+				entity.width(),
+				entity.height()
+			);
 
-					graphics.beginFill(0xFF0000);
+			collider.data = {
+				type: type
+			};
 
-					// set the line style to have a width of 5 and set the color to red
-					graphics.lineStyle(10, 0xFF0000);
+			self.crash.insert(collider);
 
-					// draw a rectangle
-					graphics.drawRect(entity._translate.x, entity._translate.y, entity.width(), entity.height());
-					graphics.zIndex = 10;
-					graphics.alpha = 0.4;
-					ige.pixi.world.addChild(graphics);
-				}
-				// collider.rotateTo(entity._rotate.z);
-			}
-			self.crash.insert(collider); // collider will now turn up in searches and collision checks
-
-			collider.igeId = fixtureDef.igeId;
-
-			// Store the entity that is linked to self body
 			collider._entity = entity;
 			collider.velocity = { x: 0, y: 0 };
-			// console.log("create body", entity._category, collider.sat.pos)
 
-			// Add the body to the world with the passed fixture
 			entity.body = collider;
 
-			// rotate body to its previous value
 			entity.rotateTo(0, 0, entity._rotate.z);
 
 			return collider;
-		},
-
-		createJoint: function (self, entityA, entityB, anchorA, anchorB) {
-			// no joint support in crash
 		},
 
 		contactListener: function (self, beginContactCallback) {
@@ -472,14 +655,6 @@ var dists = {
 					}
 				};
 
-				if ((entityA._stats && entityA._stats.name == 'car')) {
-					console.log('carA!');
-				}
-
-				if ((entityB._stats && entityB._stats.name == 'car')) {
-					console.log('carB!');
-				}
-
 				if (entityA._category == undefined && entityB._category == undefined) { // ignore wall 2 wall collision
 					return;
 				}
@@ -491,16 +666,28 @@ var dists = {
 				var overlap = res.overlapV;
 				if (entityA && entityA._stats && entityA._stats.currentBody && entityA._stats.currentBody.type != 'static') {
 					a.moveBy(-overlap.x, -overlap.y);
-					// entityA.translateTo(a.sat.pos.x - overlap.x, a.sat.pos.x - overlap.y);
 				}
 
 				if (entityB && entityB._stats && entityB._stats.currentBody && entityB._stats.currentBody.type != 'static') {
 					b.moveBy(overlap.x, overlap.y);
-					// entityB.translateTo(b.sat.pos.x + overlap.x, b.sat.pos.x + overlap.y);
 				}
 			});
+		},
+
+		createJoint: function (self, entityA, entityB, anchorA, anchorB) {
+			// no joint support... yet
+		},
+
+		// not really a transform in crash...
+		getmxfp: function (body) {
+			return body.sat.pos;
+		},
+
+		queryAABB: function (self, aabb, callback) {
+			self.world().queryAABB(aabb, callback);
 		}
 	},
+
 	BOX2DWEB: {
 		init: function (component) {
 			component.b2AABB = box2dweb.Collision.b2AABB; // added by Jaeyun for world collision detection for raycast bullets

@@ -39,9 +39,9 @@ var igeCoreConfig = {
 		['csap', 'box2dts', 'components/physics/box2d/dists/flyoverbox2dts/bundle.js'],
 		['csap', 'box2dweb', 'components/physics/box2d/dists/box2dweb/lib_box2d.js', 'box2dweb'],
 		['csap', 'box2dninja', 'components/physics/box2d/dists/box2dweb/box2d_ninja.js', 'box2dninja'],
-		['csap', 'rbush', 'components/physics/crash/rbush.js', 'rbush'],
-		['csap', 'sat', 'components/physics/crash/sat.js', 'sat'],
-		['csap', 'crash', 'components/physics/crash/crash.js', 'crash'],
+		['csap', 'RBush', 'components/physics/crash/rbush.js'],
+		['csap', 'SAT', 'components/physics/crash/sat.js'],
+		['csap', 'Crash', 'components/physics/crash/crash.js'],
 		// ['csap', 'box2DJS', 'components/physics/box2d/dists/box2dweb/231.js'],
 
 		['csap', 'dists', 'components/physics/box2d/dists.js'],

@@ -1,9 +1,11 @@
+/*
 // Crash
 // Version 2.0.2 | Copyright 2015 - 2018 | Tuur Dutoit <me@tuurdutoit.be>
 //
 // Released under the MIT License - https://github.com/TuurDutoit/crash
 //
 // Crash performs optimized 2D collisions, powered by RBush and SAT.js, written in javascript.
+*/
 
 // Create a UMD wrapper for Crash. Works in:
 //
@@ -11,16 +13,17 @@
 //  - AMD loader (like require.js)
 //  - Node.js
 
+// Not the original file. Modified
+
 (function (factory) {
 	'use strict';
 
 	if (typeof define === 'function' && define.amd) {
 		define(['RBush', 'SAT'], factory);
 	} else if (typeof exports === 'object') {
-		global.Crash = factory(require('rbush'), require('sat'));
+		module.exports = factory(require('rbush'), require('sat'));
 	} else {
-		window.Crash = factory(rbush, SAT);
-		Crash = window.Crash;
+		window.Crash = factory(window.rbush, window.SAT);
 	}
 }(function (RBush, SAT) {
 	'use strict';
@@ -84,8 +87,8 @@
 	};
 
 	/***********
-     * EXPORTS *
-     * METHODS *
+	 * EXPORTS *
+	* METHODS *
      ***********/
 
 	Crash.prototype.reset = function () {
@@ -177,9 +180,9 @@
 	};
 
 	Crash.prototype.update = function (collider) {
-		// for some reason, rbush can fail to
-		// remove the collider if updateAABB
-		// is called before the collider is removed
+	// for some reason, rbush can fail to
+	// remove the collider if updateAABB
+	// is called before the collider is removed
 		this.remove(collider);
 		this.updateAABB(collider);
 		this.insert(collider);
@@ -220,13 +223,16 @@
 		var yMin = points[0].y;
 		var xMax = points[0].x;
 		var yMax = points[0].y;
+
 		for (var i = 1; i < len; i++) {
 			var point = points[i];
+
 			if (point.x < xMin) {
 				xMin = point.x;
 			} else if (point.x > xMax) {
 				xMax = point.x;
 			}
+
 			if (point.y < yMin) {
 				yMin = point.y;
 			} else if (point.y > yMax) {
@@ -271,14 +277,15 @@
 	};
 
 	/*********
-     * TESTS *
-     *********/
+	 * TESTS *
+	 *********/
 
 	Crash.test = Crash.prototype.test = function (a, b, res) {
 		var res = res || this.RESPONSE;
 		var str = this.getTestString(a.type, b.type);
 
 		res.clear();
+
 		return SAT[str](a.sat, b.sat, res);
 	};
 
@@ -286,7 +293,8 @@
 		var res = res || this.RESPONSE;
 		var possible = this.search(a);
 
-		loop:
+		// This was some strange code originally
+		// Changed to what it ?should be
 		for (var i = 0, len = possible.length; i < len; i++) {
 			var b = possible[i];
 			var str = this.getTestString(a.type, b.type);
@@ -297,7 +305,7 @@
 				if (!this.OVERLAP_LIMIT || Math.abs(res.overlap) > this.OVERLAP_LIMIT) {
 					this.__onCollision(a, b, res);
 					if (this.BREAK) {
-						break loop;
+						break;
 					}
 				}
 			}
@@ -313,9 +321,11 @@
 
 	Crash.prototype.check = function (res) {
 		var i = 0;
+
 		while (this.__moved.length && i < this.MAX_CHECKS) {
 			var collider = this.__moved.pop();
 			var index = ALL_MOVED.indexOf(collider);
+
 			if (index === -1) {
 				ALL_MOVED.push(collider);
 			}
@@ -327,6 +337,7 @@
 		for (var i = 0, len = ALL_MOVED.length; i < len; i++) {
 			ALL_MOVED[i].lastCheckedPos.copy(ALL_MOVED[i].pos);
 		}
+
 		ALL_MOVED.length = 0;
 
 		return this;
@@ -369,10 +380,6 @@
 			crash.insert(this);
 
 			return this;
-		};
-
-		Collider.prototype.setAngle = function (angle) {
-			this.sat.setAngle(angle);
 		};
 
 		Collider.prototype.remove = function () {
